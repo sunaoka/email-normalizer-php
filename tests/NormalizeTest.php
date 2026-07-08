@@ -48,6 +48,23 @@ final class NormalizeTest extends TestCase
         normalize('   ');
     }
 
+    public function testDisplayNameAddress(): void
+    {
+        $result = normalize('Example User <u.s.e.r+tag@gmail.com>', skipDns: true);
+
+        self::assertSame('Example User <u.s.e.r+tag@gmail.com>', $result->address);
+        self::assertSame('user@gmail.com', $result->normalizedAddress);
+        self::assertSame('Google', $result->mailboxProvider);
+    }
+
+    public function testBlankAddressInsideDisplayName(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Email address must not be empty.');
+
+        normalize('Example User <   >');
+    }
+
     public function testApple(): void
     {
         $this->assertNormalized('user+test@example.com', 'user@example.com', [['priority' => 10, 'host' => 'mx01.mail.icloud.com']], 'Apple');

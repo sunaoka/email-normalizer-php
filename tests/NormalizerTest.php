@@ -45,6 +45,46 @@ final class NormalizerTest extends TestCase
         self::assertSame($expectation, (new Normalizer())->mxRecords('gmail.com'));
     }
 
+    public function testMxRecordsReturnsEmptyListWhenDnsIsSkipped(): void
+    {
+        self::assertSame([], (new Normalizer(skipDns: true))->mxRecords('gmail.com'));
+    }
+
+    public function testNativeMxLookupFailureIsCached(): void
+    {
+        $normalizer = new Normalizer();
+
+        self::assertSame([], $normalizer->mxRecords('invalid.invalid'));
+        self::assertArrayHasKey('invalid.invalid', Normalizer::cache());
+    }
+
+    public function testRawMxRecordsAreNormalizedAndMalformedRecordsAreSkipped(): void
+    {
+        $normalizer = new class extends Normalizer {
+            /**
+             * @return array<int, array<string, mixed>>
+             */
+            #[\Override]
+            protected function resolveRawMxRecordsForTest(string $domainPart): array
+            {
+                return [
+                    ['pri' => 20, 'target' => 'Z.EXAMPLE.COM.'],
+                    ['pri' => 10],
+                    ['pri' => '10', 'target' => 'invalid.example.com'],
+                    ['pri' => 10, 'target' => 'A.EXAMPLE.COM.'],
+                ];
+            }
+        };
+
+        self::assertSame(
+            [
+                ['priority' => 10, 'host' => 'a.example.com'],
+                ['priority' => 20, 'host' => 'z.example.com'],
+            ],
+            $normalizer->mxRecords('example.com'),
+        );
+    }
+
     public function testCache(): void
     {
         $normalizer = new class extends Normalizer {
@@ -76,6 +116,40 @@ final class NormalizerTest extends TestCase
 
         self::assertArrayNotHasKey('example.com', Normalizer::cache());
         self::assertArrayNotHasKey('foo', Normalizer::cache());
+    }
+
+    public function testCacheStoresEntriesWithoutPruningBelowLimit(): void
+    {
+        $normalizer = new class (cacheLimit: 3) extends Normalizer {
+            #[\Override]
+            protected function resolveMxRecordsForTest(string $domainPart): array
+            {
+                return [['priority' => 1, 'host' => 'mx.' . $domainPart]];
+            }
+        };
+
+        self::assertSame([['priority' => 1, 'host' => 'mx.one.example']], $normalizer->mxRecords('one.example'));
+        self::assertSame([['priority' => 1, 'host' => 'mx.two.example']], $normalizer->mxRecords('two.example'));
+
+        self::assertArrayHasKey('one.example', Normalizer::cache());
+        self::assertArrayHasKey('two.example', Normalizer::cache());
+        self::assertCount(2, Normalizer::cache());
+    }
+
+    public function testReturnedMxRecordsDoNotMutateCache(): void
+    {
+        $normalizer = new class extends Normalizer {
+            #[\Override]
+            protected function resolveMxRecordsForTest(string $domainPart): array
+            {
+                return [['priority' => 1, 'host' => 'mx.example.com']];
+            }
+        };
+
+        $records = $normalizer->mxRecords('example.com');
+        $records[0]['host'] = 'changed.example.com';
+
+        self::assertSame([['priority' => 1, 'host' => 'mx.example.com']], $normalizer->mxRecords('example.com'));
     }
 
     public function testFailureCached(): void
@@ -169,6 +243,23 @@ final class NormalizerTest extends TestCase
         self::assertSame('foo@bar.com', $result->normalizedAddress);
         self::assertNull($result->mailboxProvider);
         self::assertSame([], $result->mxRecords);
+    }
+
+    public function testUnknownProviderMxList(): void
+    {
+        $normalizer = new class extends Normalizer {
+            #[\Override]
+            public function mxRecords(string $domainPart): array
+            {
+                return [['priority' => 1, 'host' => 'mx.unknown.example.com']];
+            }
+        };
+
+        $result = $normalizer->normalize('Foo+Tag@Example.com');
+
+        self::assertSame('foo+tag@example.com', $result->normalizedAddress);
+        self::assertNull($result->mailboxProvider);
+        self::assertSame([['priority' => 1, 'host' => 'mx.unknown.example.com']], $result->mxRecords);
     }
 
     public function testWeirdMxList(): void

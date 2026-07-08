@@ -165,7 +165,7 @@ class Normalizer
      */
     protected function resolveMxRecordsForTest(string $domainPart): ?array
     {
-        $rawRecords = @dns_get_record($domainPart, DNS_MX);
+        $rawRecords = $this->resolveRawMxRecordsForTest($domainPart);
 
         if ($rawRecords === false || $rawRecords === []) {
             return null;
@@ -190,6 +190,16 @@ class Normalizer
         $this->sortMxRecords($records);
 
         return $records;
+    }
+
+    /**
+     * Fetch raw MX records from PHP's DNS API.
+     *
+     * @return array<int, array<int|string, mixed>>|false
+     */
+    protected function resolveRawMxRecordsForTest(string $domainPart): array|false
+    {
+        return @dns_get_record($domainPart, DNS_MX);
     }
 
     /**
