@@ -32,6 +32,22 @@ final class NormalizeTest extends TestCase
         self::assertNull($result->mailboxProvider);
     }
 
+    public function testEmptyAddress(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Email address must not be empty.');
+
+        normalize('');
+    }
+
+    public function testBlankAddress(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Email address must not be empty.');
+
+        normalize('   ');
+    }
+
     public function testApple(): void
     {
         $this->assertNormalized('user+test@example.com', 'user@example.com', [['priority' => 10, 'host' => 'mx01.mail.icloud.com']], 'Apple');

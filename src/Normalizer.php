@@ -71,6 +71,8 @@ class Normalizer
      * The returned Result contains the original address, the normalized address,
      * resolved MX records, and the detected mailbox provider name when
      * supported.
+     *
+     * @throws \InvalidArgumentException If the parsed email address is empty.
      */
     public function normalize(string $emailAddress): Result
     {
@@ -204,10 +206,16 @@ class Normalizer
     private function parseAddress(string $emailAddress): string
     {
         if (preg_match('/<([^<>]+)>/', $emailAddress, $matches) === 1) {
-            return $matches[1];
+            $address = trim($matches[1]);
+        } else {
+            $address = trim($emailAddress);
         }
 
-        return trim($emailAddress);
+        if ($address === '') {
+            throw new \InvalidArgumentException('Email address must not be empty.');
+        }
+
+        return $address;
     }
 
     /**

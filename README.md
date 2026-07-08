@@ -33,6 +33,8 @@ echo $result->mailboxProvider;   // Google
 
 `normalize()` creates a temporary `Normalizer` instance. Reuse `Normalizer` directly when normalizing many addresses or when cache options matter.
 
+Empty input, including strings that become empty after trimming, throws `InvalidArgumentException`.
+
 ## Skipping DNS Lookups
 
 Use `skipDns: true` when DNS resolution is not desired. In this mode, the package does not call DNS, detects well-known mailbox providers from a static domain map, and returns an empty MX record list.

@@ -14,6 +14,10 @@ $finder = Finder::create()
 return (new Config())
     ->setRules([
         '@PER-CS3x0' => true,
+        'global_namespace_import' => [
+            'import_classes' => false,
+        ],
+        'no_unused_imports' => true,
         'ordered_imports' => true,
         'single_quote' => true,
     ])

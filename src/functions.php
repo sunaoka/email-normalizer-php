@@ -11,6 +11,8 @@ namespace Sunaoka\EmailNormalizer;
  * Normalizer instance, resolves MX records unless $skipDns is enabled, and
  * returns the original address, normalized address, MX records, and detected
  * mailbox provider.
+ *
+ * @throws \InvalidArgumentException If the parsed email address is empty.
  */
 function normalize(string $emailAddress, bool $skipDns = false): Result
 {
