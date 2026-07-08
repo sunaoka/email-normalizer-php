@@ -1,0 +1,47 @@
+{
+    "name": "sunaoka/email-normalizer-php",
+    "description": "Normalize email addresses using mailbox provider specific rules.",
+    "keywords": ["email", "normalize", "normalizer"],
+    "type": "library",
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "sunaoka",
+            "email": "sunaoka@pocari.org"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "jeremykendall/php-domain-parser": "^6.4"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.95.12",
+        "phpstan/phpstan": "^2.2.5",
+        "phpunit/phpunit": "^11.5.56"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sunaoka\\EmailNormalizer\\": "src/"
+        },
+        "files": [
+            "src/functions.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "analyse": "phpstan analyse",
+        "format": "php-cs-fixer fix --diff --verbose"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
