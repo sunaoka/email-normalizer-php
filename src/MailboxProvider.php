@@ -27,6 +27,16 @@ abstract class MailboxProvider
     public const STRIP_PERIOD_DOMAINS = [];
 
     /**
+     * @var array<string, string>
+     *
+     * Provider-owned alias domains mapped to their canonical domain. Aliases
+     * deliver to the same mailbox as the canonical domain, so Normalizer folds
+     * them after provider detection. Custom domains that use the provider's MX
+     * servers must not appear here because they can identify separate mailboxes.
+     */
+    public const CANONICAL_DOMAINS = [];
+
+    /**
      * Return provider rule flags.
      *
      * PHP 8.2 does not support typed class constants, so concrete providers

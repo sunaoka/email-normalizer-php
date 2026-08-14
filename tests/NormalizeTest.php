@@ -70,6 +70,16 @@ final class NormalizeTest extends TestCase
         $this->assertNormalized('user+test@example.com', 'user@example.com', [['priority' => 10, 'host' => 'mx01.mail.icloud.com']], 'Apple');
     }
 
+    public function testAppleMeFoldsToIcloud(): void
+    {
+        $this->assertNormalized('first.last+tag@me.com', 'first.last@icloud.com', [['priority' => 10, 'host' => 'mx01.mail.icloud.com']], 'Apple');
+    }
+
+    public function testAppleMacFoldsToIcloud(): void
+    {
+        $this->assertNormalized('user+tag@mac.com', 'user@icloud.com', [['priority' => 10, 'host' => 'mx01.mail.icloud.com']], 'Apple');
+    }
+
     public function testFastmailPlusAddressing(): void
     {
         $this->assertNormalized('user+test@example.com', 'user@example.com', [['priority' => 10, 'host' => 'in1-smtp.messagingengine.com']], 'Fastmail');
@@ -107,7 +117,12 @@ final class NormalizeTest extends TestCase
 
     public function testGoogleConsumerGooglemail(): void
     {
-        $this->assertNormalized('u.s.e.r+tag@googlemail.com', 'user@googlemail.com', [['priority' => 1, 'host' => 'aspmx.l.google.com']], 'Google');
+        $this->assertNormalized('u.s.e.r+tag@googlemail.com', 'user@gmail.com', [['priority' => 1, 'host' => 'aspmx.l.google.com']], 'Google');
+    }
+
+    public function testGoogleWorkspaceDomainIsNotFolded(): void
+    {
+        $this->assertNormalized('first.last+tag@example.com', 'first.last@example.com', [['priority' => 1, 'host' => 'aspmx.l.google.com']], 'Google');
     }
 
     public function testGoogleWorkspacePreservesPeriods(): void
@@ -155,6 +170,23 @@ final class NormalizeTest extends TestCase
         $this->assertSkipDnsProvider('googlemail.com', 'Google');
     }
 
+    public function testGooglemailFoldsToGmailWhenDnsIsSkipped(): void
+    {
+        $result = normalize('u.s.e.r+tag@googlemail.com', skipDns: true);
+
+        self::assertSame('user@gmail.com', $result->normalizedAddress);
+        self::assertSame('Google', $result->mailboxProvider);
+    }
+
+    public function testGooglemailAndGmailCollapseToTheSameAddress(): void
+    {
+        $gmail = normalize('f.o.o+alpha@gmail.com', skipDns: true)->normalizedAddress;
+        $googlemail = normalize('f.o.o+beta@googlemail.com', skipDns: true)->normalizedAddress;
+
+        self::assertSame('foo@gmail.com', $gmail);
+        self::assertSame($gmail, $googlemail);
+    }
+
     public function testOutlook(): void
     {
         $this->assertSkipDnsProvider('outlook.com', 'Microsoft');
@@ -163,6 +195,14 @@ final class NormalizeTest extends TestCase
     public function testHotmail(): void
     {
         $this->assertSkipDnsProvider('hotmail.com', 'Microsoft');
+    }
+
+    public function testHotmailIsNotFolded(): void
+    {
+        $result = normalize('user+tag@hotmail.com', skipDns: true);
+
+        self::assertSame('user@hotmail.com', $result->normalizedAddress);
+        self::assertSame('Microsoft', $result->mailboxProvider);
     }
 
     public function testLive(): void
@@ -185,9 +225,36 @@ final class NormalizeTest extends TestCase
         $this->assertSkipDnsProvider('me.com', 'Apple');
     }
 
+    public function testMeFoldsToIcloudWhenDnsIsSkipped(): void
+    {
+        $result = normalize('user+tag@me.com', skipDns: true);
+
+        self::assertSame('user@icloud.com', $result->normalizedAddress);
+        self::assertSame('Apple', $result->mailboxProvider);
+    }
+
     public function testMac(): void
     {
         $this->assertSkipDnsProvider('mac.com', 'Apple');
+    }
+
+    public function testMacFoldsToIcloudWhenDnsIsSkipped(): void
+    {
+        $result = normalize('user+tag@mac.com', skipDns: true);
+
+        self::assertSame('user@icloud.com', $result->normalizedAddress);
+        self::assertSame('Apple', $result->mailboxProvider);
+    }
+
+    public function testIcloudAliasesCollapseToTheSameAddress(): void
+    {
+        $icloud = normalize('user+alpha@icloud.com', skipDns: true)->normalizedAddress;
+        $me = normalize('user+beta@me.com', skipDns: true)->normalizedAddress;
+        $mac = normalize('user+gamma@mac.com', skipDns: true)->normalizedAddress;
+
+        self::assertSame('user@icloud.com', $icloud);
+        self::assertSame($icloud, $me);
+        self::assertSame($icloud, $mac);
     }
 
     public function testFastmail(): void
@@ -238,6 +305,12 @@ final class NormalizeTest extends TestCase
     public function testAol(): void
     {
         $this->assertSkipDnsProvider('aol.com', 'Yahoo');
+    }
+
+    public function testYahooAliasesAreNotFolded(): void
+    {
+        self::assertSame('user@yahoo.com', normalize('user@yahoo.com', skipDns: true)->normalizedAddress);
+        self::assertSame('user@aol.com', normalize('user@aol.com', skipDns: true)->normalizedAddress);
     }
 
     public function testYandexCom(): void

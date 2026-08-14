@@ -99,6 +99,8 @@ class Normalizer
             if (($provider::flags() & Rules::PLUS_ADDRESSING) !== 0) {
                 $localPart = explode('+', $localPart, 2)[0];
             }
+
+            $domainPart = $provider::CANONICAL_DOMAINS[$domainPart] ?? $domainPart;
         }
 
         return new Result(

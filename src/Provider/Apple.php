@@ -15,6 +15,16 @@ final class Apple extends MailboxProvider
     public const FLAGS = Rules::PLUS_ADDRESSING;
     public const MX_DOMAINS = ['icloud.com'];
 
+    /**
+     * Legacy Apple aliases for the same iCloud mailbox.
+     *
+     * @see https://support.apple.com/en-us/118230
+     */
+    public const CANONICAL_DOMAINS = [
+        'me.com' => 'icloud.com',
+        'mac.com' => 'icloud.com',
+    ];
+
     #[\Override]
     public static function flags(): int
     {

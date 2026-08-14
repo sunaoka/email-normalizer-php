@@ -118,6 +118,10 @@ An empty `mxRecords` list means DNS was skipped or MX lookup failed.
 - Google Workspace custom domains keep periods but strip plus addressing.
 - Fastmail can treat the left-most subdomain as the local part.
 - Yahoo is detected, but no local-part normalization is applied.
+- Provider alias domains fold to a canonical domain: `googlemail.com` becomes
+  `gmail.com`, while `me.com` and `mac.com` become `icloud.com`.
+- Domains that share a provider but identify separate mailboxes, including
+  Microsoft `outlook.com`/`hotmail.com` and Yahoo `yahoo.com`/`aol.com`, stay unchanged.
 
 Examples:
 
@@ -127,6 +131,9 @@ normalize('u.s.e.r+tag@gmail.com', skipDns: true)->normalizedAddress;
 
 normalize('user+tag@outlook.com', skipDns: true)->normalizedAddress;
 // user@outlook.com
+
+normalize('u.s.e.r+tag@googlemail.com', skipDns: true)->normalizedAddress;
+// user@gmail.com
 
 normalize('testing@user.example.com')->normalizedAddress;
 // user@example.com when the domain is detected as Fastmail

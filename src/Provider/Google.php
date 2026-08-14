@@ -18,6 +18,13 @@ final class Google extends MailboxProvider
     public const MX_DOMAINS = ['google.com', 'googlemail.com'];
     public const STRIP_PERIOD_DOMAINS = ['gmail.com', 'googlemail.com'];
 
+    /**
+     * Googlemail is an alias for the consumer Gmail mailbox.
+     *
+     * @see https://support.google.com/mail/answer/10313
+     */
+    public const CANONICAL_DOMAINS = ['googlemail.com' => 'gmail.com'];
+
     #[\Override]
     public static function flags(): int
     {
