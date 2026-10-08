@@ -118,6 +118,8 @@ class Normalizer
      * means resolution failed or DNS is disabled.
      *
      * @return list<MxRecord>
+     *
+     * @phpstan-impure
      */
     public function mxRecords(string $domainPart): array
     {

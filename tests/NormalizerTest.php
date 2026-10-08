@@ -149,7 +149,10 @@ final class NormalizerTest extends TestCase
         $records = $normalizer->mxRecords('example.com');
         $records[0]['host'] = 'changed.example.com';
 
-        self::assertSame([['priority' => 1, 'host' => 'mx.example.com']], $normalizer->mxRecords('example.com'));
+        $cachedRecords = $normalizer->mxRecords('example.com');
+
+        self::assertNotSame($records, $cachedRecords);
+        self::assertSame([['priority' => 1, 'host' => 'mx.example.com']], $cachedRecords);
     }
 
     public function testFailureCached(): void
@@ -231,6 +234,7 @@ final class NormalizerTest extends TestCase
     public function testEmptyMxList(): void
     {
         $normalizer = new class extends Normalizer {
+            /** @phpstan-pure */
             #[\Override]
             public function mxRecords(string $domainPart): array
             {
@@ -248,6 +252,7 @@ final class NormalizerTest extends TestCase
     public function testUnknownProviderMxList(): void
     {
         $normalizer = new class extends Normalizer {
+            /** @phpstan-pure */
             #[\Override]
             public function mxRecords(string $domainPart): array
             {
@@ -265,6 +270,7 @@ final class NormalizerTest extends TestCase
     public function testWeirdMxList(): void
     {
         $normalizer = new class extends Normalizer {
+            /** @phpstan-pure */
             #[\Override]
             public function mxRecords(string $domainPart): array
             {

@@ -401,6 +401,7 @@ final class NormalizeTest extends TestCase
                 parent::__construct();
             }
 
+            /** @phpstan-pure */
             #[\Override]
             public function mxRecords(string $domainPart): array
             {
